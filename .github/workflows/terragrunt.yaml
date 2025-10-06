@@ -1,0 +1,31 @@
+name: "Infrastructure as Code"
+
+on:
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - "modules/**"
+      - "inputs/**"
+
+jobs:
+  format_validate:
+    name: "Format & Validate"
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Terragrunt and OpenTofu
+        uses: gruntwork-io/terragrunt-action@v3
+      
+      - name: "Format: Inputs"
+        run: terragrunt hcl fmt --all --check --diff
+      
+      - name: "Format: Modules"
+        run: tofu fmt --recursive --check --diff
+      
+      - name: "Validate: Inputs"
+        run: terragrunt hcl validate --all --inputs --strict
+
