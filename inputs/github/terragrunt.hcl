@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/github"
+  source = "../../modules//github"
 }
 
 include "root" {
@@ -9,14 +9,33 @@ include "root" {
 inputs = {
   owner = "msanavia"
   repositories = {
+    advent-of-code = {
+      description       = "Advent of Code solutions."
+      topics            = ["advent-of-code", "python"]
+      visibility        = "public"
+      enable_dependabot = false
+    }
+    entra-id-memberships-cloner = {
+      description       = "Shell script to clone memberships between 2 users or 2 groups"
+      topics            = ["entra-id", "shell", "bash", "azure-cli"]
+      visibility        = "public"
+      enable_dependabot = true
+    }
+    infrastructure-as-code = {
+      description       = "Monorepo for Infrastructure as Code."
+      topics            = ["terragrunt", "opentofu", "terraform"]
+      visibility        = "public"
+      enable_dependabot = true
+    }
+    learning-and-development = {
+      description       = "Labs for training."
+      visibility        = "private"
+      enable_dependabot = false
+    }
     msanavia = {
-      archive_on_destroy     = true
-      delete_branch_on_merge = true
-      description            = "GitHub Personal Profile"
-      visibility             = "public"
-      collaborators = {
-        //"msanavia" = "admin"
-      }
+      description       = "GitHub Personal Profile"
+      visibility        = "public"
+      enable_dependabot = false
     }
   }
 }

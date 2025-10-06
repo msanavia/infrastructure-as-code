@@ -5,11 +5,14 @@ variable "owner" {
 variable "repositories" {
   description = "A map of repositories."
   type = map(object({
-    archive_on_destroy = bool
-    dependabot_enable  = optional(bool)
     description        = string
-    visibility         = string
     topics             = optional(list(string), null)
-    collaborators      = map(string)
+    visibility         = string
+    enable_dependabot  = bool
+    enable_issues      = optional(bool)
+    enable_discussions = optional(bool)
+    enable_projects    = optional(bool)
+    enable_wiki        = optional(bool)
+    collaborators      = optional(map(string))
   }))
 }
