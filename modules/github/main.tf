@@ -39,8 +39,8 @@ resource "github_branch_protection" "enforced_prefixes" {
     ]) : "${pair.repo_name}:${pair.pattern}" => pair
   }
 
-  repository_id = github_repository.repository[each.value.repo_name].id
-  pattern       = each.value.pattern
+  repository_id                   = github_repository.repository[each.value.repo_name].id
+  pattern                         = each.value.pattern
   lock_branch                     = true
   require_conversation_resolution = true
 
