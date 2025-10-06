@@ -13,19 +13,19 @@ jobs:
     name: "Format & Validate"
     runs-on: ubuntu-latest
     steps:
-      
       - name: Checkout code
         uses: actions/checkout@v4
-      
       - name: Install Terragrunt and OpenTofu
         uses: gruntwork-io/terragrunt-action@v3
-      
       - name: "Format: Inputs"
         run: terragrunt hcl fmt --all --check --diff
-      
       - name: "Format: Modules"
         run: tofu fmt --recursive --check --diff
-      
       - name: "Validate: Inputs"
         run: terragrunt hcl validate --all --inputs --strict
-
+  pr_check_passed:
+    needs: [format_validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: echo "All checks passed!"
