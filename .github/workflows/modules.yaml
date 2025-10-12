@@ -2,15 +2,12 @@ name: "Modules"
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'modules/**'
+    branches: [main]
+    paths: ['modules/**']
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'modules/**'
+    branches: [main]
+    paths: ['modules/**']
+    types: [opened, edited, reopened, synchronize]
   workflow_dispatch:
 
 permissions:
@@ -40,14 +37,15 @@ jobs:
     name: Check terraform docs
     needs: main
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'github-actions[bot]' }}
+    if: ${{ github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, 'automated action')}}
     steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
-    - name: Render terraform docs inside the README.md
-      uses: terraform-docs/gh-actions@v1.4.1
-      with:
-        config-file: .terraform-docs.yml
-        git-push: true
-        # fail-on-diff: true
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Render terraform docs inside the README.md
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          config-file: .terraform-docs.yml
+          git-push: true
+          # fail-on-diff: true

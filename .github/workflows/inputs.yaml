@@ -2,15 +2,12 @@ name: "Inputs"
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'inputs/**'
+    branches: [main]
+    paths: ['inputs/**']
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'inputs/**'
+    branches: [main]
+    paths: ['inputs/**']
+    types: [opened, edited, reopened, synchronize]
   workflow_dispatch:
 
 jobs:
