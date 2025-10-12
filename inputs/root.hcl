@@ -26,7 +26,7 @@ terraform {
         version = "~> 6.0"
     }
     %{endif}
-    %{if contains(local.providers, "github")}
+    %{if contains(local.providers, "oci")}
       oci = {
         source = "oracle/oci"
         version = "7.22.0"
