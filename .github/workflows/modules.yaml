@@ -37,7 +37,6 @@ jobs:
     name: Check terraform docs
     needs: main
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, 'automated action')}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -47,5 +46,4 @@ jobs:
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           config-file: .terraform-docs.yml
-          git-push: true
-          # fail-on-diff: true
+          fail-on-diff: true
