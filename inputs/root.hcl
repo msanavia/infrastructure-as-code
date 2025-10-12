@@ -5,7 +5,7 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
   config = {
-    path = "${get_parent_terragrunt_dir()}/.terragrunt-local-state/${path_relative_to_include()}/tofu.tfstate"
+    path = "${get_parent_terragrunt_dir()}/.terragrunt-local-state/inputs/${path_relative_to_include()}/tofu.tfstate"
   }
 }
 
@@ -24,6 +24,12 @@ terraform {
       github = {
         source  = "integrations/github"
         version = "~> 6.0"
+    }
+    %{endif}
+    %{if contains(local.providers, "github")}
+      oci = {
+        source = "oracle/oci"
+        version = "7.22.0"
     }
     %{endif}
   }
