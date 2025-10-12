@@ -13,6 +13,10 @@ on:
       - 'modules/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   main:
     name: Format and Validate
@@ -22,19 +26,18 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Terragrunt and OpenTofu
         uses: gruntwork-io/terragrunt-action@v3
-      - name: "Format"
+      - name: Format
         run: |
           cd modules
           tofu fmt --recursive --check --diff
-      - name: "Validate"
+      - name: Validate
         run: |
           find ./modules -type f -name '*.tf' -exec dirname {} \; | sort -u | while read dir; do
             echo "Validating $dir"
             (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
           done
   docs:
-    permissions:
-      contents: write
+    name: Generate terraform docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -43,8 +46,9 @@ jobs:
     - name: Render terraform docs inside the README.md and push changes back to PR branch
       uses: terraform-docs/gh-actions@v1.4.1
       with:
-        working-dir: .
+        working-dir: modules/
         output-file: README.md
         output-method: replace
         recursive: true
-        git-push: "true"
+        recursive-path: .
+        git-push: true
