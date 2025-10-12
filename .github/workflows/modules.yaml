@@ -33,55 +33,6 @@ jobs:
             (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
           done
   docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
-    - name: Render terraform docs inside the README.md and push changes back to PR branch
-      uses: terraform-docs/gh-actions@v1.4.1
-      with:
-        working-dir: .
-        output-file: README.md
-        output-method: replace
-        recursive: true
-        git-push: "true"
-
-name: "Modules"
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'modules/**'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'modules/**'
-  workflow_dispatch:
-
-jobs:
-  main:
-    name: Format and Validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Terragrunt and OpenTofu
-        uses: gruntwork-io/terragrunt-action@v3
-      - name: "Format"
-        run: |
-          cd modules
-          tofu fmt --recursive --check --diff
-      - name: "Validate"
-        run: |
-          find ./modules -type f -name '*.tf' -exec dirname {} \; | sort -u | while read dir; do
-            echo "Validating $dir"
-            (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
-          done
-  docs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
