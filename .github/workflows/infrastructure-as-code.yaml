@@ -9,7 +9,7 @@ on:
       - reopened
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -45,8 +45,8 @@ jobs:
             bot
             ignore-semantic-pull-request
           headerPatternCorrespondence: type, scope, subject
-  format_iac:
-    name: Format IaC files
+  format_validate:
+    name: Format and Validate files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -61,22 +61,15 @@ jobs:
         run: |
           cd modules
           tofu fmt --recursive --check --diff
-  validate_iac:
-    name: Validate IaC files
-    runs-on: ubuntu-latest 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Terragrunt and OpenTofu
-        uses: gruntwork-io/terragrunt-action@v3
       - name: "Validate: Inputs"
         run: terragrunt hcl validate --all --inputs --strict
-  validate_yaml_json:
-    name: Validate JSON and YAML files
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: json-yaml-validate
+      - name: "Validate: Modules"
+        run: |
+          find ./modules -type f -name '*.tf' -exec dirname {} \; | sort -u | while read dir; do
+            echo "Validating $dir"
+            (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
+          done
+      - name: "Validate: JSON and YAML files"
         id: json-yaml-validate
         uses: GrantBirki/json-yaml-validate@v3.3.2
         with:
@@ -95,3 +88,18 @@ jobs:
           base: ""
           head: ${{ github.ref_name }}
           extra_args: --results=verified,unknown
+  documentation:
+    name: Generate terraform docs
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Render terraform docs inside the README.md and push changes back to PR branch
+      uses: terraform-docs/gh-actions@v1.4.1
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: replace
+        git-push: "true"
+        recursive: "true"
