@@ -1,0 +1,30 @@
+name: "Inputs"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'inputs/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'inputs/**'
+  workflow_dispatch:
+
+jobs:
+  main:
+    name: Format and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Terragrunt and OpenTofu
+        uses: gruntwork-io/terragrunt-action@v3
+      - name: "Format"
+        run: |
+          cd inputs
+          terragrunt hcl fmt --all --check --diff
+      - name: "Validate"
+        run: terragrunt hcl validate --all --inputs --strict
