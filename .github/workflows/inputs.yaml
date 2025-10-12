@@ -2,15 +2,12 @@ name: "Inputs"
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'inputs/**'
+    branches: [main]
+    paths: ['inputs/**']
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'inputs/**'
+    branches: [main]
+    paths: ['inputs/**']
+    types: [opened, edited, reopened, synchronize]
   workflow_dispatch:
 
 jobs:
@@ -22,9 +19,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Terragrunt and OpenTofu
         uses: gruntwork-io/terragrunt-action@v3
-      - name: "Format"
+      - name: Format
         run: |
           cd inputs
           terragrunt hcl fmt --all --check --diff
-      - name: "Validate"
+      - name: Validate
         run: terragrunt hcl validate --all --inputs --strict
