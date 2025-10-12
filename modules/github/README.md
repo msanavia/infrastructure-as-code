@@ -17,8 +17,6 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [github_branch_protection.enforced_prefixes](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/branch_protection) | resource |
-| [github_branch_protection.main_branch_protection](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/branch_protection) | resource |
 | [github_repository.repository](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/repository) | resource |
 | [github_repository_collaborator.collaborators](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/repository_collaborator) | resource |
 | [github_repository_dependabot_security_updates.dependabot](https://registry.terraform.io/providers/hashicorp/github/latest/docs/resources/repository_dependabot_security_updates) | resource |
