@@ -37,18 +37,17 @@ jobs:
             (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
           done
   docs:
-    name: Generate terraform docs
+    name: Check terraform docs
+    needs: main
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
     steps:
     - uses: actions/checkout@v3
       with:
         ref: ${{ github.event.pull_request.head.ref }}
-    - name: Render terraform docs inside the README.md and push changes back to PR branch
+    - name: Render terraform docs inside the README.md
       uses: terraform-docs/gh-actions@v1.4.1
       with:
-        working-dir: modules/
-        output-file: README.md
-        output-method: replace
-        recursive: true
-        recursive-path: .
+        config-file: .terraform-docs.yml
         git-push: true
+        # fail-on-diff: true
