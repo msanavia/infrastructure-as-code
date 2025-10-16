@@ -15,7 +15,6 @@ resource "github_repository" "repository" {
   has_projects              = each.value.enable_projects != null ? each.value.enable_projects : false
   has_wiki                  = each.value.enable_wiki != null ? each.value.enable_wiki : false
   squash_merge_commit_title = "PR_TITLE"
-
 }
 resource "github_repository_ruleset" "branch_main_ruleset" {
   // Branch Rulesets and Protection on Private Repositories requires a GitHub Pro account
