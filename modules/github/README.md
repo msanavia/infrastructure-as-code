@@ -34,6 +34,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_collaborator_invitation_ids"></a> [collaborator\_invitation\_ids](#output\_collaborator\_invitation\_ids) | A map of collaborator keys to their invitation\_id (if an invitation was sent). |
+| <a name="output_collaborator_invitation_ids"></a> [collaborator\_invitation\_ids](#output\_collaborator\_invitation\_ids) | Invitation IDs for each collaborator. |
 | <a name="output_repository_urls"></a> [repository\_urls](#output\_repository\_urls) | WEB and SSH-clone URLs for each repository. |
 <!-- END_TF_DOCS -->
