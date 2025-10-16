@@ -19,18 +19,27 @@ jobs:
 
       - id: set-matrix
         run: |
+          set -x
+          echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+          echo "Merge Commit SHA: ${{ github.event.pull_request.merge_commit_sha }}"
           # Find top-level module directories that changed under /modules/
-          chANGED=$(git diff --dirstat=files,0 HEAD^ HEAD | awk '{print $2}' | cut -d/ -f2 | sort -u)
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.merge_commit_sha }} | grep '^modules/' | cut -d/ -f2 | sort -u)
+          echo "Changed modules: $CHANGED"
           MODULES=()
           for m in $CHANGED; do
             if [ -d "modules/$m" ]; then
+              echo "Module directory exists: modules/$m"
               MODULES+=("\"$m\"")
+            else
+              echo "Module directory does not exist: modules/$m"
             fi
           done
 
           if [ ${#MODULES[@]} -eq 0 ]; then
+            echo "No modules changed."
             echo "matrix={\"module\":[]}" >> $GITHUB_OUTPUT
           else
+            echo "Modules to release: ${MODULES[*]}"
             echo "matrix={\"module\":[${MODULES[*]}]}" >> $GITHUB_OUTPUT
           fi
 
@@ -55,17 +64,20 @@ jobs:
       - name: Determine next semantic version for ${{ matrix.module }}
         id: versioning
         run: |
+          set -x
           MOD="${{ matrix.module }}"
           cd modules/$MOD
 
           # Get the latest version tag for this module (e.g. core/v0.2.4)
           LATEST=$(git tag --list "$MOD/v*" | sort -V | tail -n1)
-          echo "Latest tag: $LATEST"
+          echo "Latest tag for $MOD: $LATEST"
 
           if [ -z "$LATEST" ]; then
             BASE_VER="0.0.0"
+            echo "No previous version found. Starting from $BASE_VER"
           else
             BASE_VER=${LATEST#"$MOD/v"}
+            echo "Base version: $BASE_VER"
           fi
 
           # Find commits since the last tag that affected this module
@@ -80,6 +92,7 @@ jobs:
 
           # Determine bump type
           PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $PR_TITLE"
           BUMP=""
           if echo "$PR_TITLE" | grep -q "BREAKING CHANGE"; then
             BUMP="major"
