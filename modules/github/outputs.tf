@@ -9,7 +9,7 @@ output "repository_urls" {
   }
 }
 output "collaborator_invitation_ids" {
-  description = "A map of collaborator keys to their invitation_id (if an invitation was sent)."
+  description = "Invitation IDs for each collaborator."
   value = {
     for key, collaborator in github_repository_collaborator.collaborators :
     key => collaborator.invitation_id
