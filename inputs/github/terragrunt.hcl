@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules//github"
+  source = "git::https://github.com/msanavia/infrastructure-as-code.git//modules/github?ref=github/v0.1.0"
 }
 
 include "root" {
@@ -10,7 +10,7 @@ inputs = {
   owner = "msanavia"
   repositories = {
     advent-of-code = {
-      description       = "Advent of Code solutions."
+      description       = "Advent of Code solutions"
       topics            = ["advent-of-code", "python"]
       visibility        = "public"
       enable_dependabot = false
@@ -22,13 +22,13 @@ inputs = {
       enable_dependabot = true
     }
     infrastructure-as-code = {
-      description       = "Monorepo for Infrastructure as Code."
+      description       = "Monorepo for Infrastructure as Code"
       topics            = ["terragrunt", "opentofu", "terraform"]
       visibility        = "public"
       enable_dependabot = true
     }
     learning-and-development = {
-      description       = "Labs for training."
+      description       = "Labs for training"
       visibility        = "private"
       enable_dependabot = false
     }
