@@ -11,6 +11,10 @@ remote_state {
 
 locals {
   providers = try(yamldecode(file("${get_original_terragrunt_dir()}/providers.yaml")), [])
+  default_tags = {
+    managed_by   = "OpenTofu"
+    tfstate_path = "inputs/${path_relative_to_include()}/"
+  }
 }
 
 generate "terraform" {

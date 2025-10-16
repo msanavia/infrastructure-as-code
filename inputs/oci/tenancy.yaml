@@ -1,0 +1,5 @@
+root_compartment_ocid: "ocid1.tenancy.oc1..aaaaaaaamxxkownhg5euzamphb3soa3g6npkixlo7leouw65p2r4hngw2fxq"
+root_compartment_name: "marcosanavia"
+home_region: "eu-frankfurt-1"
+tags:
+  compartment_root: "marcosanavia (root)"
