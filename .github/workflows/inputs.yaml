@@ -39,6 +39,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Verify referenced module tags and releases exist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           # Get changed terragrunt.hcl files in this PR
