@@ -1,13 +1,10 @@
 name: "Modules"
 
 on:
-  push:
-    branches: [main]
-    paths: ['modules/**']
   pull_request:
     branches: [main]
     paths: ['modules/**']
-    types: [opened, edited, reopened, synchronize]
+    types: [opened, edited, reopened, synchronize, closed]
   workflow_dispatch:
 
 permissions:
@@ -15,8 +12,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  main:
+  format_validate:
     name: Format and Validate
+    if: ${{ github.event.pull_request.merged != true }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,7 +33,8 @@ jobs:
           done
   docs:
     name: Check terraform docs
-    needs: main
+    if: ${{ github.event.pull_request.merged != true }}
+    needs: format_validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -47,3 +46,139 @@ jobs:
         with:
           config-file: .terraform-docs.yml
           fail-on-diff: true
+  detect-changed-modules:
+    name: Detect changed modules
+    if: ${{ github.event.pull_request.merged == true && github.event_name != 'workflow_dispatch'}}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: set-matrix
+        run: |
+          set -x
+          echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+          echo "Merge Commit SHA: ${{ github.event.pull_request.merge_commit_sha }}"
+          # Find top-level module directories that changed under /modules/
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.merge_commit_sha }} | grep '^modules/' | cut -d/ -f2 | sort -u)
+          echo "Changed modules: $CHANGED"
+          MODULES=()
+          for m in $CHANGED; do
+            if [ -d "modules/$m" ]; then
+              echo "Module directory exists: modules/$m"
+              MODULES+=("\"$m\"")
+            else
+              echo "Module directory does not exist: modules/$m"
+            fi
+          done
+          if [ ${#MODULES[@]} -eq 0 ]; then
+            echo "No modules changed."
+            echo "matrix={\"module\":[]}" >> $GITHUB_OUTPUT
+          else
+            echo "Modules to release: ${MODULES[*]}"
+            echo "matrix={\"module\":[${MODULES[*]}]}" >> $GITHUB_OUTPUT
+          fi
+  release:
+    name: Release modules
+    needs: detect-changed-modules
+    if: ${{ needs.detect-changed-modules.outputs.matrix != '{"module":[]}' && github.event.pull_request.merged == true && github.event_name != 'workflow_dispatch'}}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changed-modules.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Git credentials
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Determine next semantic version for ${{ matrix.module }}
+        id: versioning
+        run: |
+          set -x
+          MOD="${{ matrix.module }}"
+          cd modules/$MOD
+          # Find commits since the last tag that affected this module
+          if [ -z "$LATEST" ]; then
+            COMMITS=$(git log --oneline -- modules/$MOD)
+          else
+            COMMITS=$(git log --oneline "$LATEST"..HEAD -- modules/$MOD)
+          fi
+          echo "Commits affecting this module:"
+          echo "$COMMITS"
+          # Determine bump type
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $PR_TITLE"
+          BUMP=""
+          if echo "$PR_TITLE" | grep -q "BREAKING CHANGE"; then
+            BUMP="major"
+          elif echo "$PR_TITLE" | grep -qE "^.*feat(\(|:)" ; then
+            BUMP="minor"
+          elif echo "$PR_TITLE" | grep -qE "^.*(fix|chore)(\(|:)" ; then
+            BUMP="patch"
+          fi
+          if [ -z "$BUMP" ]; then
+            echo "No relevant PR title (feat/fix/chore/BREAKING CHANGE) found — skipping release."
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Bump type: $BUMP"
+          # Get the latest version tag for this module
+          LATEST=$(git tag --list "$MOD/v*" | sort -V | tail -n1)
+          echo "Latest tag for $MOD: $LATEST"
+          if [ -z "$LATEST" ]; then
+            BASE_VER="0.0.0"
+            echo "No previous version found. Starting from $BASE_VER"
+          else
+            BASE_VER=${LATEST#"$MOD/v"}
+            echo "Base version: $BASE_VER"
+          fi
+          # Parse version
+          IFS='.' read -r MAJ MIN PATCH <<< "$BASE_VER"
+          case $BUMP in
+            major)
+              MAJ=$((MAJ + 1))
+              MIN=0
+              PATCH=0
+              ;;
+            minor)
+              MIN=$((MIN + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          # Set next version
+          NEXT="$MAJ.$MIN.$PATCH"
+          echo "Next version: $NEXT"
+          echo "module=$MOD" >> $GITHUB_OUTPUT
+          echo "version=$NEXT" >> $GITHUB_OUTPUT
+      - name: Skip if no relevant commits
+        if: steps.versioning.outputs.skip_release == 'true'
+        run: echo "Skipping release for ${{ matrix.module }}"
+      - name: Create tag and release for module
+        if: steps.versioning.outputs.skip_release != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          MOD="${{ steps.versioning.outputs.module }}"
+          VER="${{ steps.versioning.outputs.version }}"
+          TAG="$MOD/v$VER"
+          ARCHIVE="${MOD}_v${VER}.tar.gz"
+          echo "Creating tag $TAG..."
+          git tag -a $TAG -m "$MOD version $VER"
+          git push origin $TAG
+          echo "Packaging only .tf files of the module..."
+          cd modules/$MOD
+          tar -czf ../${ARCHIVE} *.tf
+          cd -
+          echo "Creating GitHub Release..."
+          gh release create $TAG \
+            --title "$MOD v$VER" \
+            --notes "Automated release for module $MOD version $VER" \
+            modules/${ARCHIVE}
