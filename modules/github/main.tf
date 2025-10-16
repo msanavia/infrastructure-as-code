@@ -54,6 +54,7 @@ resource "github_repository_dependabot_security_updates" "dependabot" {
   for_each   = local.dependabot_enabled
   repository = github_repository.repository[each.key].id
   enabled    = true
+  depends_on = [github_repository.repository]
 }
 resource "github_repository_collaborator" "collaborators" {
   for_each   = { for c in local.repository_collaborators : "${c.repo_name}:${c.username}" => c }
