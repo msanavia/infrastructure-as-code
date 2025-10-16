@@ -14,6 +14,4 @@ locals {
       }
     ]
   ])
-  branch_prefixes = ["chore", "fix", "feature", "release", "hotfix", "bug", "test", "docs"]
-  branch_patterns = [for prefix in local.branch_prefixes : "${prefix}/**/*"]
 }
