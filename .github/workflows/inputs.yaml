@@ -32,7 +32,6 @@ jobs:
         run: terragrunt hcl validate --all --inputs --strict
   verify_module_refs:
     name: Check referenced module tags and releases in changed .hcl files
-    if: ${{ github.event.pull_request.merged == true && github.event_name != 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,7 +41,8 @@ jobs:
       - name: Verify referenced module tags and releases exist in changed .hcl files
         run: |
           set -euo pipefail
-          CHANGED_HCL=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.merge_commit_sha }} | grep '\.hcl$' || true)
+          # Get changed .hcl files in this PR
+          CHANGED_HCL=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '\.hcl$' || true)
           if [ -z "$CHANGED_HCL" ]; then
             echo "No .hcl files changed."
             exit 0
