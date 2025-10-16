@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  format_validate:
-    name: Format and Validate
+  format:
+    name: Terragrunt HCL FMT
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,5 +20,47 @@ jobs:
         run: |
           cd inputs
           terragrunt hcl fmt --all --check --diff
+  validate:
+    name: OpenTofu Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Terragrunt and OpenTofu
+        uses: gruntwork-io/terragrunt-action@v3
       - name: Validate
         run: terragrunt hcl validate --all --inputs --strict
+  verify_module_refs:
+    name: Check referenced module tags and releases in changed .hcl files
+    if: ${{ github.event.pull_request.merged == true && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify referenced module tags and releases exist in changed .hcl files
+        run: |
+          set -euo pipefail
+          CHANGED_HCL=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.merge_commit_sha }} | grep '\.hcl$' || true)
+          if [ -z "$CHANGED_HCL" ]; then
+            echo "No .hcl files changed."
+            exit 0
+          fi
+          for file in $CHANGED_HCL; do
+            echo "Checking $file"
+            grep -hoE 'source *= *"git::[^"]+\?ref=[^"]+"' "$file" | while read -r line; do
+              REF=$(echo "$line" | sed -n 's/.*ref=\([^"&]*\).*/\1/p')
+              echo "Checking tag and release: $REF"
+              if git ls-remote --tags origin | grep -q "refs/tags/$REF$"; then
+                echo "Tag $REF exists on remote."
+              else
+                echo "Tag $REF does NOT exist on remote!" && exit 1
+              fi
+              if gh release view "$REF" > /dev/null 2>&1; then
+                echo "Release $REF exists on GitHub."
+              else
+                echo "Release $REF does NOT exist on GitHub!" && exit 1
+              fi
+            done
+          done
