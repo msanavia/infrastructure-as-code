@@ -12,8 +12,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  format_validate:
-    name: Format and Validate
+  format:
+    name: OpenTofu Format
     if: ${{ github.event.pull_request.merged != true }}
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +25,15 @@ jobs:
         run: |
           cd modules
           tofu fmt --recursive --check --diff
+  validate:
+    name: OpenTofu Validate
+    if: ${{ github.event.pull_request.merged != true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Terragrunt and OpenTofu
+        uses: gruntwork-io/terragrunt-action@v3
       - name: Validate
         run: |
           find ./modules -type f -name '*.tf' -exec dirname {} \; | sort -u | while read dir; do
@@ -32,9 +41,8 @@ jobs:
             (cd "$dir" && tofu init -input=false -backend=false > /dev/null && tofu validate)
           done
   docs:
-    name: Check terraform docs
+    name: Terraform Docs
     if: ${{ github.event.pull_request.merged != true }}
-    needs: format_validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
