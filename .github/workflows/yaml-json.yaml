@@ -1,13 +1,6 @@
 name: "YAML & JSON"
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '**/*.yaml'
-      - '**/*.yml'
-      - '**/*.json'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:

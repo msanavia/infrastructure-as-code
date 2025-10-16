@@ -1,9 +1,6 @@
 name: "Inputs"
 
 on:
-  push:
-    branches: [main]
-    paths: ['inputs/**']
   pull_request:
     branches: [main]
     paths: ['inputs/**']
@@ -11,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  main:
+  format_validate:
     name: Format and Validate
     runs-on: ubuntu-latest
     steps:
