@@ -50,6 +50,10 @@ jobs:
             exit 0
           fi
           for file in $CHANGED_HCL; do
+            if [ ! -f "$file" ]; then
+              echo "File $file does not exist. Skipping."
+              continue
+            fi
             echo "Checking $file"
             grep -hoE 'source *= *"git::[^"]+\?ref=[^"]+"' "$file" | while read -r line; do
               REF=$(echo "$line" | sed -n 's/.*ref=\([^"&]*\).*/\1/p')
