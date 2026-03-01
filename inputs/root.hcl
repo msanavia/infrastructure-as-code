@@ -27,13 +27,13 @@ terraform {
     %{if contains(local.providers, "github")}
       github = {
         source  = "integrations/github"
-        version = "~> 6.0"
+        version = "6.11.1"
     }
     %{endif}
     %{if contains(local.providers, "oci")}
       oci = {
         source = "oracle/oci"
-        version = "7.22.0"
+        version = "8.3.0"
     }
     %{endif}
   }
