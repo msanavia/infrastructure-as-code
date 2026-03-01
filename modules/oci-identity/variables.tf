@@ -26,3 +26,14 @@ variable "compartment" {
   })
   default = null
 }
+
+variable "compartments" {
+  description = "Details of the compartments to create."
+  type = map(object({
+    name        = string
+    parent      = string
+    description = string
+    tags        = map(string)
+  }))
+  default = null
+}
