@@ -8,11 +8,11 @@ resource "oci_identity_domain" "default" {
   freeform_tags  = var.domain.tags
   license_type   = "free"
 }
-resource "oci_identity_compartment" "compartment" {
-  // Create compartment only if variable is set
-  count          = var.compartment == null ? 0 : 1
-  name           = var.compartment.name
-  description    = var.compartment.description
-  compartment_id = var.compartment.parent
-  freeform_tags  = var.compartment.tags
+
+resource "oci_identity_compartment" "compartments" {
+  for_each       = var.compartments
+  name           = each.value.name
+  description    = each.value.description
+  compartment_id = each.value.parent
+  freeform_tags  = each.value.tags
 }
