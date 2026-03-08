@@ -15,6 +15,12 @@ inputs = {
       visibility        = "public"
       enable_dependabot = false
     }
+    craftony = {
+      description       = "crafTony - Minecraft Network"
+      topics            = ["minecraft", "terraform"]
+      visibility        = "public"
+      enable_dependabot = false
+    }
     entra-id-memberships-cloner = {
       description       = "Shell script to clone memberships between 2 users or 2 groups"
       topics            = ["entra-id", "shell", "bash", "azure-cli"]
